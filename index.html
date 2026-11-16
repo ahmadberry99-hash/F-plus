@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>F-plus</title>
 <link rel="manifest" href="manifest.json">
-<script src="https://gstatic.com"></script>
-<script src="https://gstatic.com"></script>
-<script src="https://gstatic.com"></script>
 <style>
   body { font-family: Tahoma, sans-serif; margin: 0; background: #f1f5f9; display: flex; height: 100vh; }
   #auth { position: fixed; inset: 0; background: #0f172a; display: flex; align-items: center; justify-content: center; }
@@ -57,121 +54,128 @@
   document.getElementById('to-up').onclick = function() { document.getElementById('f-in').style.display='none'; document.getElementById('f-up').style.display='block'; };
   document.getElementById('to-in').onclick = function() { document.getElementById('f-up').style.display='none'; document.getElementById('f-in').style.display='block'; };
 
-  firebase.initializeApp({
-    apiKey: "AIzaSyDtVi8oqsw7mXKQebxxuGEhUUGdqyZVqCM",
-    authDomain: "://firebaseapp.com",
-    projectId: "f-plus-94505",
-    storageBucket: "f-plus-94505.firebasestorage.app",
-    messagingSenderId: "601890979674",
-    appId: "1:601890979674:web:4d68660983295597817d63"
-  });
+  function loadScript(src) {
+    return new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
 
-  var auth = firebase.auth();
-  var db = firebase.firestore();
-  var me = null, secs = [];
+  var base = 'https://' + '://gstatic.com';
+  loadScript(base + 'firebase-app-compat.js')
+    .then(function() { return loadScript(base + 'firebase-auth-compat.js'); })
+    .then(function() { return loadScript(base + 'firebase-firestore-compat.js'); })
+    .then(initApp)
+    .catch(function(err) {
+      document.getElementById('m1').innerText = 'فشل تحميل النظام، تأكد من الاتصال بالإنترنت';
+      document.getElementById('m2').innerText = 'فشل تحميل النظام، تأكد من الاتصال بالإنترنت';
+    });
 
-  document.getElementById('out').onclick = function() { auth.signOut(); };
-  
-  document.getElementById('b-in').onclick = function() {
-    document.getElementById('m1').innerText = 'جاري الدخول...';
-    auth.signInWithEmailAndPassword(document.getElementById('u').value.trim().toLowerCase() + '@fplus.local', document.getElementById('p').value)
-      .catch(function(e) { document.getElementById('m1').innerText = 'خطأ في البيانات'; });
-  };
+  function initApp() {
+    firebase.initializeApp({
+      apiKey: "AIzaSyDtVi8oqsw7mXKQebxxuGEhUUGdqyZVqCM",
+      authDomain: "://firebaseapp.com",
+      projectId: "f-plus-94505",
+      storageBucket: "f-plus-94505.firebasestorage.app",
+      messagingSenderId: "601890979674",
+      appId: "1:601890979674:web:4d68660983295597817d63"
+    });
 
-  document.getElementById('b-up').onclick = function() {
-    var n = document.getElementById('rn').value.trim();
-    var u = document.getElementById('ru').value.trim().toLowerCase();
-    var p = document.getElementById('rp').value;
-    if(!n || !u || p.length < 6) { document.getElementById('m2').innerText = 'أكمل الحقول وكلمة المرور 6 خانات'; return; }
-    document.getElementById('m2').innerText = 'جاري التسجيل...';
+    var auth = firebase.auth();
+    var db = firebase.firestore();
+    var me = null, secs = [];
+
+    document.getElementById('out').onclick = function() { auth.signOut(); };
     
-    auth.createUserWithEmailAndPassword(u + '@fplus.local', p).then(function(c) {
-      return db.collection('users').get().then(function(s) {
-        var adm = s.empty;
-        return db.collection('users').doc(c.user.uid).set({
-          fullName: n, username: u, role: adm ? 'admin' : 'user', status: adm ? 'active' : 'pending', allowedSections: []
-        }).then(function() {
-          if(adm) {
-            var d = [
-              {id:'home',title:'الرئيسية',options:['تعميم','ملاحظة']},
-              {id:'alerts',title:'التنبيهات',options:['عاجل','تذكير']},
-              {id:'reports',title:'التقارير',options:['يومي','أسبوعي']},
-              {id:'acc',title:'المحاسبة',options:['قبض','صرف']},
-              {id:'cli',title:'العملاء',options:['جديد','متابعة']}
-            ];
-            return Promise.all(d.map(function(x) { return db.collection('sections').doc(x.id).set(x); }));
-          }
-        });
-      });
-    }).then(function() {
-      location.reload();
-    }).catch(function(e) {
-      document.getElementById('m2').innerText = 'خطأ: ' + e.message;
-    });
-  };
-
-  auth.onAuthStateChanged(function(u) {
-    if(!u) { document.getElementById('auth').style.display='flex'; document.getElementById('app').style.display='none'; return; }
-    db.collection('users').doc(u.uid).get().then(function(d) {
-      if(!d.exists) return;
-      me = Object.assign({ uid: u.uid }, d.data());
-      document.getElementById('auth').style.display='none';
-      if(me.status === 'pending') { document.getElementById('wait').style.display='flex'; return; }
-      document.getElementById('app').style.display='flex';
-      
-      db.collection('sections').get().then(function(snap) {
-        secs = []; snap.forEach(function(x) { secs.push(x.data()); });
-        var m = document.getElementById('menu'); m.innerHTML = '';
-        secs.forEach(function(s) {
-          if(me.role === 'admin' || me.allowedSections.indexOf(s.id) !== -1) {
-            var b = document.createElement('div'); b.className='item'; b.innerText=s.title; b.onclick=function(){ showSec(s); }; m.appendChild(b);
-          }
-        });
-        if(me.role === 'admin') {
-          var a = document.createElement('div'); a.className='item'; a.style.color='#fbbf24'; a.innerText='إدارة النظام'; a.onclick=showAdm; m.appendChild(a);
-        }
-        if(m.firstChild) m.firstChild.click();
-      });
-    });
-  });
-
-  window.showSec = function(s) {
-    var v = document.getElementById('view');
-    v.innerHTML = '<div class="card"><h3>'+s.title+'</h3><select id="t">'+s.options.map(function(o){return '<option>'+o+'</option>';}).join('')+'</select><input id="ti" placeholder="العنوان"><textarea id="de" placeholder="التفاصيل"></textarea><button id="sv">حفظ</button></div><div class="card" id="ls"></div>';
-    document.getElementById('sv').onclick = function() {
-      db.collection('records').add({ sec: s.id, type: document.getElementById('t').value, title: document.getElementById('ti').value, details: document.getElementById('de').value, by: me.fullName }).then(function(){ showSec(s); });
+    document.getElementById('b-in').onclick = function() {
+      document.getElementById('m1').innerText = 'جاري الدخول...';
+      auth.signInWithEmailAndPassword(document.getElementById('u').value.trim().toLowerCase() + '@fplus.local', document.getElementById('p').value)
+        .catch(function(e) { document.getElementById('m1').innerText = 'خطأ في البيانات'; });
     };
-    db.collection('records').get().then(function(r) {
-      var h = '<table><tr><th>النوع</th><th>البيان</th><th>بواسطة</th></tr>';
-      r.forEach(function(x) { var d = x.data(); if(d.sec===s.id && (me.role==='admin' || d.by===me.fullName)) h += '<tr><td>'+d.type+'</td><td>'+d.title+'<br><small>'+d.details+'</small></td><td>'+d.by+'</td></tr>'; });
-      document.getElementById('ls').innerHTML = h + '</table>';
-    });
-  };
 
-  window.showAdm = function() {
-    var v = document.getElementById('view');
-    db.collection('users').get().then(function(u) {
-      var h = '<table><tr><th>الاسم</th><th>الحالة</th><th>الصلاحيات</th><th>تفعيل</th></tr>';
-      u.forEach(function(x) {
-        var d = x.data(); if(d.role==='admin') return;
-        var ch = secs.map(function(s) { return '<label><input type="checkbox" style="width:auto" '+(d.allowedSections && d.allowedSections.indexOf(s.id)!==-1?'checked':'')+' onchange="tg(\''+x.id+'\',\''+s.id+'\',this.checked)">'+s.title+'</label> '; }).join('');
-        h += '<tr><td>'+d.fullName+'</td><td>'+d.status+'</td><td>'+ch+'</td><td>'+(d.status==='pending'?'<button onclick="ap(\''+x.id+'\')">تفعيل</button>':'')+'</td></tr>';
+    document.getElementById('b-up').onclick = function() {
+      var n = document.getElementById('rn').value.trim();
+      var u = document.getElementById('ru').value.trim().toLowerCase();
+      var p = document.getElementById('rp').value;
+      if(!n || !u || p.length < 6) { document.getElementById('m2').innerText = 'أكمل الحقول وكلمة المرور 6 خانات'; return; }
+      document.getElementById('m2').innerText = 'جاري التسجيل...';
+      
+      auth.createUserWithEmailAndPassword(u + '@fplus.local', p).then(function(c) {
+        return db.collection('users').get().then(function(s) {
+          var adm = s.empty;
+          return db.collection('users').doc(c.user.uid).set({
+            fullName: n, username: u, role: adm ? 'admin' : 'user', status: adm ? 'active' : 'pending', allowedSections: []
+          }).then(function() {
+            if(adm) {
+              var d = [
+                {id:'home',title:'الرئيسية',options:['تعميم','ملاحظة']},
+                {id:'alerts',title:'التنبيهات',options:['عاجل','تذكير']},
+                {id:'reports',title:'التقارير',options:['يومي','أسبوعي']},
+                {id:'acc',title:'المحاسبة',options:['قبض','صرف']},
+                {id:'cli',title:'العملاء',options:['جديد','متابعة']}
+              ];
+              return Promise.all(d.map(function(x) { return db.collection('sections').doc(x.id).set(x); }));
+            }
+          });
+        });
+      }).then(function() {
+        location.reload();
+      }).catch(function(e) {
+        document.getElementById('m2').innerText = 'خطأ: ' + e.message;
       });
-      v.innerHTML = '<div class="card"><h3>الأعضاء</h3>'+h+'</table></div><div class="card"><h3>إضافة قسم</h3><input id="ns" placeholder="اسم القسم"><input id="no" placeholder="الخيارات مفصولة بفاصلة"><button id="as">إضافة</button></div>';
-      document.getElementById('as').onclick = function() {
-        var id = 's_' + Date.now();
-        db.collection('sections').doc(id).set({ id: id, title: document.getElementById('ns').value, options: document.getElementById('no').value.split(',') }).then(function(){ location.reload(); });
+    };
+
+    auth.onAuthStateChanged(function(u) {
+      if(!u) { document.getElementById('auth').style.display='flex'; document.getElementById('app').style.display='none'; return; }
+      db.collection('users').doc(u.uid).get().then(function(d) {
+        if(!d.exists) return;
+        me = Object.assign({ uid: u.uid }, d.data());
+        document.getElementById('auth').style.display='none';
+        if(me.status === 'pending') { document.getElementById('wait').style.display='flex'; return; }
+        document.getElementById('app').style.display='flex';
+        
+        db.collection('sections').get().then(function(snap) {
+          secs = []; snap.forEach(function(x) { secs.push(x.data()); });
+          var m = document.getElementById('menu'); m.innerHTML = '';
+          secs.forEach(function(s) {
+            if(me.role === 'admin' || me.allowedSections.indexOf(s.id) !== -1) {
+              var b = document.createElement('div'); b.className='item'; b.innerText=s.title; b.onclick=function(){ showSec(s); }; m.appendChild(b);
+            }
+          });
+          if(me.role === 'admin') {
+            var a = document.createElement('div'); a.className='item'; a.style.color='#fbbf24'; a.innerText='إدارة النظام'; a.onclick=showAdm; m.appendChild(a);
+          }
+          if(m.firstChild) m.firstChild.click();
+        });
+      });
+    });
+
+    window.showSec = function(s) {
+      var v = document.getElementById('view');
+      v.innerHTML = '<div class="card"><h3>'+s.title+'</h3><select id="t">'+s.options.map(function(o){return '<option>'+o+'</option>';}).join('')+'</select><input id="ti" placeholder="العنوان"><textarea id="de" placeholder="التفاصيل"></textarea><button id="sv">حفظ</button></div><div class="card" id="ls"></div>';
+      document.getElementById('sv').onclick = function() {
+        db.collection('records').add({ sec: s.id, type: document.getElementById('t').value, title: document.getElementById('ti').value, details: document.getElementById('de').value, by: me.fullName }).then(function(){ showSec(s); });
       };
-    });
-  };
-  window.ap = function(id) { db.collection('users').doc(id).update({ status: 'active' }).then(showAdm); };
-  window.tg = function(uid, sid, ok) {
-    db.collection('users').doc(uid).get().then(function(s) {
-      var a = s.data().allowedSections || [];
-      if(ok) a.push(sid); else a = a.filter(function(x){return x !== sid;});
-      db.collection('users').doc(uid).update({ allowedSections: a });
-    });
-  };
-</script>
-</body>
-</html>
+      db.collection('records').get().then(function(r) {
+        var h = '<table><tr><th>النوع</th><th>البيان</th><th>بواسطة</th></tr>';
+        r.forEach(function(x) { var d = x.data(); if(d.sec===s.id && (me.role==='admin' || d.by===me.fullName)) h += '<tr><td>'+d.type+'</td><td>'+d.title+'<br><small>'+d.details+'</small></td><td>'+d.by+'</td></tr>'; });
+        document.getElementById('ls').innerHTML = h + '</table>';
+      });
+    };
+
+    window.showAdm = function() {
+      var v = document.getElementById('view');
+      db.collection('users').get().then(function(u) {
+        var h = '<table><tr><th>الاسم</th><th>الحالة</th><th>الصلاحيات</th><th>تفعيل</th></tr>';
+        u.forEach(function(x) {
+          var d = x.data(); if(d.role==='admin') return;
+          var ch = secs.map(function(s) { return '<label><input type="checkbox" style="width:auto" '+(d.allowedSections && d.allowedSections.indexOf(s.id)!==-1?'checked':'')+' onchange="tg(\''+x.id+'\',\''+s.id+'\',this.checked)">'+s.title+'</label> '; }).join('');
+          h += '<tr><td>'+d.fullName+'</td><td>'+d.status+'</td><td>'+ch+'</td><td>'+(d.status==='pending'?'<button onclick="ap(\''+x.id+'\')">تفعيل</button>':'')+'</td></tr>';
+        });
+        v.innerHTML = '<div class="card"><h3>الأعضاء</h3>'+h+'</table></div><div class="card"><h3>إضافة قسم</h3><input id="ns" placeholder="اسم القسم"><input id="no" placeholder="الخيارات مفصولة بفاصلة"><button id="as">إضافة</button></div>';
+        document.getElementById('as').onclick = function() {
+          var id = 's_' + Date.now();
+          db.collection('sections').doc(id).set({ id: id, title: document.getElementById('ns').value, options: document.getElementById('no').value.split(',') }).then(function(){ location.reload(); });
