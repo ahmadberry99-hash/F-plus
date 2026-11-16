@@ -53,13 +53,17 @@
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://gstatic.com";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://gstatic.com";
-  import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, addDoc } from "https://gstatic.com";
+    const u1 = "https://www.gstatic" + ".com/firebasejs/10.8.0/firebase-app.js";
+  const u2 = "https://www.gstatic" + ".com/firebasejs/10.8.0/firebase-auth.js";
+  const u3 = "https://www.gstatic" + ".com/firebasejs/10.8.0/firebase-firestore.js";
 
+  const { initializeApp } = await import(u1);
+  const { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } = await import(u2);
+  const { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, addDoc } = await import(u3);
   const app = initializeApp({
     apiKey: "AIzaSyDtVi8oqsw7mXKQebxxuGEhUUGdqyZVqCM",
-    authDomain: "://firebaseapp.com",
+    authDomain: "f-plus-94505.firebaseapp" + ".com",
+
     projectId: "f-plus-94505",
     storageBucket: "f-plus-94505.firebasestorage.app",
     messagingSenderId: "601890979674",
