@@ -53,14 +53,14 @@
 </div>
 
 <script>
-  function showUp() {
+  window.showUp = function() {
     document.getElementById('f-in').style.display = 'none';
     document.getElementById('f-up').style.display = 'block';
-  }
-  function showIn() {
+  };
+  window.showIn = function() {
     document.getElementById('f-up').style.display = 'none';
     document.getElementById('f-in').style.display = 'block';
-  }
+  };
 
   var auth = null, db = null, me = null, secs = [];
 
