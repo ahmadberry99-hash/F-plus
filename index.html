@@ -80,8 +80,7 @@
     appId: "1:601890979674:web:4d68660983295597817d63"
   });
 
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+  const auth = getAuth(app), db = getFirestore(app);
   let me = null, secs = [];
 
   function applyTheme(p, s, b) {
@@ -91,32 +90,21 @@
   }
 
   window.doOut = () => signOut(auth);
-
   window.doLogin = async () => {
     document.getElementById('m1').innerText = 'جاري الدخول...';
-    try {
-      await signInWithEmailAndPassword(auth, document.getElementById('u').value.trim().toLowerCase() + '@fplus.local', document.getElementById('p').value);
-    } catch(e) {
-      document.getElementById('m1').innerText = 'خطأ في البيانات';
-    }
+    try { await signInWithEmailAndPassword(auth, document.getElementById('u').value.trim().toLowerCase() + '@fplus.local', document.getElementById('p').value); }
+    catch(e) { document.getElementById('m1').innerText = 'خطأ في البيانات'; }
   };
 
   window.doReg = async () => {
-    const n = document.getElementById('rn').value.trim();
-    const u = document.getElementById('ru').value.trim().toLowerCase();
-    const p = document.getElementById('rp').value;
-    if(!n || !u || p.length < 6) {
-      document.getElementById('m2').innerText = 'أكمل الحقول وكلمة المرور 6 خانات';
-      return;
-    }
+    const n = document.getElementById('rn').value.trim(), u = document.getElementById('ru').value.trim().toLowerCase(), p = document.getElementById('rp').value;
+    if(!n || !u || p.length < 6) { document.getElementById('m2').innerText = 'أكمل الحقول وكلمة المرور 6 خانات'; return; }
     document.getElementById('m2').innerText = 'جاري التسجيل...';
     try {
       const c = await createUserWithEmailAndPassword(auth, u + '@fplus.local', p);
       const s = await getDocs(collection(db, 'users'));
       const adm = s.empty;
-      await setDoc(doc(db, 'users', c.user.uid), {
-        fullName: n, username: u, role: adm ? 'admin' : 'user', status: adm ? 'active' : 'pending', allowedSections: []
-      });
+      await setDoc(doc(db, 'users', c.user.uid), { fullName: n, username: u, role: adm ? 'admin' : 'user', status: adm ? 'active' : 'pending', allowedSections: [] });
       if(adm) {
         const d = [
           {id:'home',title:'الرئيسية',options:['تعميم','ملاحظة'],order:1},
@@ -128,15 +116,12 @@
         for(const x of d) await setDoc(doc(db, 'sections', x.id), x);
       }
       location.reload();
-    } catch(e) {
-      document.getElementById('m2').innerText = 'خطأ: ' + e.message;
-    }
+    } catch(e) { document.getElementById('m2').innerText = 'خطأ: ' + e.message; }
   };
 
   onAuthStateChanged(auth, async (u) => {
     const tDoc = await getDoc(doc(db, 'settings', 'theme'));
     if(tDoc.exists()) applyTheme(tDoc.data().primary, tDoc.data().side, tDoc.data().bg);
-
     if(!u) { document.getElementById('auth').style.display='flex'; document.getElementById('app').style.display='none'; return; }
     const d = await getDoc(doc(db, 'users', u.uid));
     if(!d.exists()) return;
@@ -151,7 +136,6 @@
     const snap = await getDocs(collection(db, 'sections'));
     secs = []; snap.forEach(x => secs.push(x.data()));
     secs.sort((a, b) => (a.order || 99) - (b.order || 99));
-
     const m = document.getElementById('menu'); m.innerHTML = '';
     secs.forEach(s => {
       if(me.role === 'admin' || me.allowedSections.includes(s.id)) {
@@ -187,7 +171,35 @@
         const ch = secs.map(s => '<label><input type="checkbox" style="width:auto" '+(d.allowedSections?.includes(s.id)?'checked':'')+' onchange="window.tg(\''+x.id+'\',\''+s.id+'\',this.checked)">'+s.title+'</label> ').join('');
         uh += '<tr><td>'+d.fullName+'</td><td>'+d.status+'</td><td>'+ch+'</td><td>'+(d.status==='pending'?'<button class="btn-sm" onclick="window.ap(\''+x.id+'\')">تفعيل</button>':'')+'</td></tr>';
       });
-
       let sh = '<table><tr><th>الترتيب</th><th>اسم القسم</th><th>الخيارات</th><th>تحكم</th></tr>';
       secs.forEach((s, idx) => {
-        sh += '<tr>' +
+        sh += '<tr><td><button class="btn-sm sec" onclick="window.mvSec('+idx+',-1)">▲</button><button class="btn-sm sec" onclick="window.mvSec('+idx+',1)">▼</button></td><td><b>'+s.title+'</b></td><td>'+s.options.join('، ')+'</td><td><button class="btn-sm btn-del" onclick="window.delSec(\''+s.id+'\')">حذف</button></td></tr>';
+      });
+      v.innerHTML = '<div class="card"><h3>🎨 ثيم وألوان التطبيق</h3><button class="theme-btn" style="background:#2563eb" onclick="window.setTheme(\'#2563eb\',\'#0f172a\',\'#f1f5f9\')">أزرق رسمي</button><button class="theme-btn" style="background:#059669" onclick="window.setTheme(\'#059669\',\'#064e3b\',\'#ecfdf5\')">أخضر زمردي</button><button class="theme-btn" style="background:#7c3aed" onclick="window.setTheme(\'#7c3aed\',\'#2e1065\',\'#f5f3ff\')">بنفسجي عصري</button><button class="theme-btn" style="background:#334155" onclick="window.setTheme(\'#334155\',\'#090d16\',\'#e2e8f0\')">داكن كلاسيكي</button></div><div class="card"><h3>📂 ترتيب وحذف الأقسام</h3>'+sh+'</table><hr><h4>إضافة قسم جديد:</h4><input id="ns" placeholder="اسم القسم"><input id="no" placeholder="الخيارات مفصولة بفاصلة"><button id="as">إضافة القسم</button></div><div class="card"><h3>👥 إدارة الأعضاء والصلاحيات</h3>'+uh+'</table></div>';
+      document.getElementById('as').onclick = async () => {
+        const title = document.getElementById('ns').value.trim(), opts = document.getElementById('no').value.trim();
+        if(!title || !opts) return alert('أكمل اسم القسم والخيارات');
+        const id = 's_' + Date.now();
+        await setDoc(doc(db, 'sections', id), { id, title, options: opts.split(','), order: secs.length + 1 });
+        await renderMenu(); showAdm();
+      };
+    });
+  }
+
+  window.setTheme = async (p, s, b) => { applyTheme(p, s, b); await setDoc(doc(db, 'settings', 'theme'), { primary: p, side: s, bg: b }); };
+  window.delSec = async (id) => { if(!confirm('هل أنت متأكد من حذف هذا القسم؟')) return; await deleteDoc(doc(db, 'sections', id)); await renderMenu(); showAdm(); };
+  window.mvSec = async (idx, dir) => {
+    const target = idx + dir; if(target < 0 || target >= secs.length) return;
+    const temp = secs[idx]; secs[idx] = secs[target]; secs[target] = temp;
+    for(let i = 0; i < secs.length; i++) { secs[i].order = i + 1; await updateDoc(doc(db, 'sections', secs[i].id), { order: i + 1 }); }
+    await renderMenu(); showAdm();
+  };
+  window.ap = async (id) => { await updateDoc(doc(db, 'users', id), { status: 'active' }); showAdm(); };
+  window.tg = async (uid, sid, ok) => {
+    const r = doc(db, 'users', uid); const s = await getDoc(r); let a = s.data().allowedSections || [];
+    if(ok) a.push(sid); else a = a.filter(x => x !== sid);
+    await updateDoc(r, { allowedSections: a });
+  };
+</script>
+</body>
+</html>
