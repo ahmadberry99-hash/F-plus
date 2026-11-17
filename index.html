@@ -4,21 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>F-plus</title>
+<link rel="manifest" href="manifest.json">
 <style>
-  body { font-family: Tahoma, sans-serif; margin: 0; background: #f1f5f9; display: flex; height: 100vh; }
-  #auth { position: fixed; inset: 0; background: #0f172a; display: flex; align-items: center; justify-content: center; }
+  :root { --primary: #2563eb; --side: #0f172a; --bg: #f1f5f9; }
+  body { font-family: Tahoma, sans-serif; margin: 0; background: var(--bg); display: flex; height: 100vh; }
+  #auth { position: fixed; inset: 0; background: var(--side); display: flex; align-items: center; justify-content: center; z-index: 10; }
   .box { background: #fff; padding: 25px; border-radius: 10px; width: 90%; max-width: 350px; text-align: center; }
   input, select, textarea { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-  button { width: 100%; padding: 10px; background: #2563eb; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 6px; }
+  button { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 6px; }
   .sec { background: #64748b; }
+  .btn-sm { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 13px; }
+  .btn-del { background: #ef4444; }
   #app { display: none; width: 100%; }
-  .side { width: 220px; background: #0f172a; color: #fff; padding: 15px; display: flex; flex-direction: column; }
+  .side { width: 230px; background: var(--side); color: #fff; padding: 15px; display: flex; flex-direction: column; }
   .item { padding: 10px; margin: 4px 0; border-radius: 5px; cursor: pointer; }
-  .item:hover { background: #2563eb; }
+  .item:hover { background: var(--primary); }
   .main { flex: 1; padding: 20px; overflow-y: auto; }
-  .card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+  .card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
   table { width: 100%; border-collapse: collapse; }
-  td, th { border-bottom: 1px solid #eee; padding: 8px; text-align: right; }
+  td, th { border-bottom: 1px solid #eee; padding: 10px; text-align: right; }
+  .theme-btn { width: auto; padding: 10px 15px; margin: 5px; border: 2px solid #cbd5e1; }
+  @media (max-width: 768px) {
+    #app { flex-direction: column; }
+    .side { width: 100%; flex-direction: row; overflow-x: auto; padding: 8px; }
+    .side h2 { display: none; }
+    .item { white-space: nowrap; margin: 0 4px; }
+  }
 </style>
 </head>
 <body>
@@ -53,25 +64,31 @@
 </div>
 
 <script type="module">
-    const u1 = "https://www.gstatic" + ".com/firebasejs/10.8.0/firebase-app.js";
+  const u1 = "https://www.gstatic" + ".com/firebasejs/10.8.0/firebase-app.js";
   const u2 = "https://www.gstatic" + ".com/firebasejs/10.8.0/firebase-auth.js";
   const u3 = "https://www.gstatic" + ".com/firebasejs/10.8.0/firebase-firestore.js";
-
   const { initializeApp } = await import(u1);
   const { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } = await import(u2);
-  const { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, addDoc } = await import(u3);
+  const { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, deleteDoc, addDoc } = await import(u3);
+
   const app = initializeApp({
     apiKey: "AIzaSyDtVi8oqsw7mXKQebxxuGEhUUGdqyZVqCM",
     authDomain: "f-plus-94505.firebaseapp" + ".com",
-
     projectId: "f-plus-94505",
     storageBucket: "f-plus-94505.firebasestorage.app",
     messagingSenderId: "601890979674",
     appId: "1:601890979674:web:4d68660983295597817d63"
   });
+
   const auth = getAuth(app);
   const db = getFirestore(app);
   let me = null, secs = [];
+
+  function applyTheme(p, s, b) {
+    document.documentElement.style.setProperty('--primary', p || '#2563eb');
+    document.documentElement.style.setProperty('--side', s || '#0f172a');
+    document.documentElement.style.setProperty('--bg', b || '#f1f5f9');
+  }
 
   window.doOut = () => signOut(auth);
 
@@ -102,11 +119,11 @@
       });
       if(adm) {
         const d = [
-          {id:'home',title:'الرئيسية',options:['تعميم','ملاحظة']},
-          {id:'alerts',title:'التنبيهات',options:['عاجل','تذكير']},
-          {id:'reports',title:'التقارير',options:['يومي','أسبوعي']},
-          {id:'acc',title:'المحاسبة',options:['قبض','صرف']},
-          {id:'cli',title:'العملاء',options:['جديد','متابعة']}
+          {id:'home',title:'الرئيسية',options:['تعميم','ملاحظة'],order:1},
+          {id:'alerts',title:'التنبيهات',options:['عاجل','تذكير'],order:2},
+          {id:'reports',title:'التقارير',options:['يومي','أسبوعي'],order:3},
+          {id:'acc',title:'المحاسبة',options:['قبض','صرف'],order:4},
+          {id:'cli',title:'العملاء',options:['جديد','متابعة'],order:5}
         ];
         for(const x of d) await setDoc(doc(db, 'sections', x.id), x);
       }
@@ -117,6 +134,9 @@
   };
 
   onAuthStateChanged(auth, async (u) => {
+    const tDoc = await getDoc(doc(db, 'settings', 'theme'));
+    if(tDoc.exists()) applyTheme(tDoc.data().primary, tDoc.data().side, tDoc.data().bg);
+
     if(!u) { document.getElementById('auth').style.display='flex'; document.getElementById('app').style.display='none'; return; }
     const d = await getDoc(doc(db, 'users', u.uid));
     if(!d.exists()) return;
@@ -124,9 +144,14 @@
     document.getElementById('auth').style.display='none';
     if(me.status === 'pending') { document.getElementById('wait').style.display='flex'; return; }
     document.getElementById('app').style.display='flex';
-    
+    await renderMenu();
+  });
+
+  async function renderMenu() {
     const snap = await getDocs(collection(db, 'sections'));
     secs = []; snap.forEach(x => secs.push(x.data()));
+    secs.sort((a, b) => (a.order || 99) - (b.order || 99));
+
     const m = document.getElementById('menu'); m.innerHTML = '';
     secs.forEach(s => {
       if(me.role === 'admin' || me.allowedSections.includes(s.id)) {
@@ -134,10 +159,10 @@
       }
     });
     if(me.role === 'admin') {
-      const a = document.createElement('div'); a.className='item'; a.style.color='#fbbf24'; a.innerText='إدارة النظام'; a.onclick=showAdm; m.appendChild(a);
+      const a = document.createElement('div'); a.className='item'; a.style.color='#fbbf24'; a.innerText='⚙️ إدارة النظام'; a.onclick=showAdm; m.appendChild(a);
     }
     if(m.firstChild) m.firstChild.click();
-  });
+  }
 
   function showSec(s) {
     const v = document.getElementById('view');
@@ -156,27 +181,13 @@
   function showAdm() {
     const v = document.getElementById('view');
     getDocs(collection(db, 'users')).then(u => {
-      let h = '<table><tr><th>الاسم</th><th>الحالة</th><th>الصلاحيات</th><th>تفعيل</th></tr>';
+      let uh = '<table><tr><th>الاسم</th><th>الحالة</th><th>الصلاحيات</th><th>تفعيل</th></tr>';
       u.forEach(x => {
         const d = x.data(); if(d.role==='admin') return;
         const ch = secs.map(s => '<label><input type="checkbox" style="width:auto" '+(d.allowedSections?.includes(s.id)?'checked':'')+' onchange="window.tg(\''+x.id+'\',\''+s.id+'\',this.checked)">'+s.title+'</label> ').join('');
-        h += '<tr><td>'+d.fullName+'</td><td>'+d.status+'</td><td>'+ch+'</td><td>'+(d.status==='pending'?'<button onclick="window.ap(\''+x.id+'\')">تفعيل</button>':'')+'</td></tr>';
+        uh += '<tr><td>'+d.fullName+'</td><td>'+d.status+'</td><td>'+ch+'</td><td>'+(d.status==='pending'?'<button class="btn-sm" onclick="window.ap(\''+x.id+'\')">تفعيل</button>':'')+'</td></tr>';
       });
-      v.innerHTML = '<div class="card"><h3>الأعضاء</h3>'+h+'</table></div><div class="card"><h3>إضافة قسم</h3><input id="ns" placeholder="اسم القسم"><input id="no" placeholder="الخيارات مفصولة بفاصلة"><button id="as">إضافة</button></div>';
-      document.getElementById('as').onclick = async () => {
-        const id = 's_' + Date.now();
-        await setDoc(doc(db, 'sections', id), { id, title: document.getElementById('ns').value, options: document.getElementById('no').value.split(',') });
-        location.reload();
-      };
-    });
-  }
 
-  window.ap = async (id) => { await updateDoc(doc(db, 'users', id), { status: 'active' }); showAdm(); };
-  window.tg = async (uid, sid, ok) => {
-    const r = doc(db, 'users', uid); const s = await getDoc(r); let a = s.data().allowedSections || [];
-    if(ok) a.push(sid); else a = a.filter(x => x !== sid);
-    await updateDoc(r, { allowedSections: a });
-  };
-</script>
-</body>
-</html>
+      let sh = '<table><tr><th>الترتيب</th><th>اسم القسم</th><th>الخيارات</th><th>تحكم</th></tr>';
+      secs.forEach((s, idx) => {
+        sh += '<tr>' +
