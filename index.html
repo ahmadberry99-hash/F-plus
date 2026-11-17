@@ -5,29 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>F-plus</title>
 <link rel="manifest" href="manifest.json">
+<style id="g-fonts"></style>
 <style>
-  :root { --primary: #2563eb; --side: #0f172a; --bg: #f1f5f9; }
-  body { font-family: Tahoma, sans-serif; margin: 0; background: var(--bg); display: flex; height: 100vh; }
+  :root { --primary: #2563eb; --side: #0f172a; --bg: #f1f5f9; --font: 'Tahoma', sans-serif; }
+  body { font-family: var(--font); margin: 0; background: var(--bg); background-size: cover; background-position: center; background-attachment: fixed; display: flex; height: 100vh; }
+  input, select, textarea, button { font-family: var(--font); }
   #auth { position: fixed; inset: 0; background: var(--side); display: flex; align-items: center; justify-content: center; z-index: 10; }
-  .box { background: #fff; padding: 25px; border-radius: 10px; width: 90%; max-width: 350px; text-align: center; }
-  input, select, textarea { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-  button { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 6px; }
+  .box { background: rgba(255,255,255,0.96); padding: 28px; border-radius: 16px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.25); }
+  input, select, textarea { width: 100%; padding: 11px; margin: 7px 0; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; transition: 0.2s; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+  button { width: 100%; padding: 11px; background: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
+  button:hover { filter: brightness(1.08); }
   .sec { background: #64748b; }
-  .btn-sm { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 13px; }
+  .btn-sm { width: auto; padding: 6px 12px; margin: 3px; font-size: 13px; border-radius: 6px; }
   .btn-del { background: #ef4444; }
   #app { display: none; width: 100%; }
-  .side { width: 230px; background: var(--side); color: #fff; padding: 15px; display: flex; flex-direction: column; }
-  .item { padding: 10px; margin: 4px 0; border-radius: 5px; cursor: pointer; }
-  .item:hover { background: var(--primary); }
-  .main { flex: 1; padding: 20px; overflow-y: auto; }
-  .card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .side { width: 240px; background: var(--side); color: #fff; padding: 18px; display: flex; flex-direction: column; opacity: 0.97; }
+  .brand { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 22px; font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+  .item { padding: 11px 14px; margin: 4px 0; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+  .item:hover { background: var(--primary); transform: translateX(-3px); }
+  .item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .main { flex: 1; padding: 24px; overflow-y: auto; }
+  .card { background: rgba(255,255,255,0.95); padding: 20px; border-radius: 14px; margin-bottom: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); backdrop-filter: blur(6px); }
+  .card h3 { display: flex; align-items: center; gap: 8px; margin-top: 0; }
   table { width: 100%; border-collapse: collapse; }
-  td, th { border-bottom: 1px solid #eee; padding: 10px; text-align: right; }
-  .theme-btn { width: auto; padding: 10px 15px; margin: 5px; border: 2px solid #cbd5e1; }
+  td, th { border-bottom: 1px solid #e2e8f0; padding: 11px; text-align: right; }
+  .theme-btn { width: auto; padding: 10px 16px; margin: 5px; border: 2px solid rgba(255,255,255,0.4); border-radius: 10px; }
   @media (max-width: 768px) {
     #app { flex-direction: column; }
-    .side { width: 100%; flex-direction: row; overflow-x: auto; padding: 8px; }
-    .side h2 { display: none; }
+    .side { width: 100%; flex-direction: row; overflow-x: auto; padding: 10px; }
+    .brand { display: none; }
     .item { white-space: nowrap; margin: 0 4px; }
   }
 </style>
@@ -36,7 +43,7 @@
 
 <div id="auth">
   <div class="box" id="f-in">
-    <h2>تطبيق F-plus</h2>
+    <h2 style="margin-top:0;">تطبيق F-plus</h2>
     <input id="u" placeholder="اسم المستخدم">
     <input id="p" type="password" placeholder="كلمة المرور">
     <button type="button" onclick="window.doLogin()">دخول</button>
@@ -44,7 +51,7 @@
     <p id="m1" style="color:red;"></p>
   </div>
   <div class="box" id="f-up" style="display:none;">
-    <h2>حساب جديد</h2>
+    <h2 style="margin-top:0;">حساب جديد</h2>
     <input id="rn" placeholder="الاسم الكامل">
     <input id="ru" placeholder="اسم مستخدم إنجليزي">
     <input id="rp" type="password" placeholder="كلمة مرور (6 خانات فأكثر)">
@@ -59,11 +66,24 @@
 </div>
 
 <div id="app">
-  <div class="side"><h2>F-plus</h2><div id="menu"></div><button class="sec" onclick="window.doOut()" style="margin-top:auto;">خروج</button></div>
+  <div class="side">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      <span>F-plus</span>
+    </div>
+    <div id="menu"></div>
+    <button class="sec" onclick="window.doOut()" style="margin-top:auto;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span>خروج</span>
+    </button>
+  </div>
   <div class="main" id="view"></div>
 </div>
 
 <script type="module">
+  const gf = "https://fonts.googleapis" + ".com/css2?family=Almarai:wght@400;700&family=Cairo:wght@400;700&family=Tajawal:wght@400;700&display=swap";
+  document.getElementById('g-fonts').textContent = `@import url('${gf}');`;
+
   const u1 = "https://www.gstatic" + ".com/firebasejs/10.8.0/firebase-app.js";
   const u2 = "https://www.gstatic" + ".com/firebasejs/10.8.0/firebase-auth.js";
   const u3 = "https://www.gstatic" + ".com/firebasejs/10.8.0/firebase-firestore.js";
@@ -81,12 +101,25 @@
   });
 
   const auth = getAuth(app), db = getFirestore(app);
-  let me = null, secs = [];
+  let me = null, secs = [], cfg = { primary: '#2563eb', side: '#0f172a', bg: '#f1f5f9', font: "'Tahoma', sans-serif", bgImg: '' };
 
-  function applyTheme(p, s, b) {
-    document.documentElement.style.setProperty('--primary', p || '#2563eb');
-    document.documentElement.style.setProperty('--side', s || '#0f172a');
-    document.documentElement.style.setProperty('--bg', b || '#f1f5f9');
+  const icons = {
+    home: '<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+    alerts: '<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+    reports: '<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+    acc: '<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>',
+    cli: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    def: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>',
+    adm: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
+  };
+
+  function applyStyle(c) {
+    cfg = { ...cfg, ...c };
+    document.documentElement.style.setProperty('--primary', cfg.primary);
+    document.documentElement.style.setProperty('--side', cfg.side);
+    document.documentElement.style.setProperty('--bg', cfg.bg);
+    document.documentElement.style.setProperty('--font', cfg.font);
+    document.body.style.backgroundImage = cfg.bgImg ? `url('${cfg.bgImg}')` : 'none';
   }
 
   window.doOut = () => signOut(auth);
@@ -121,7 +154,7 @@
 
   onAuthStateChanged(auth, async (u) => {
     const tDoc = await getDoc(doc(db, 'settings', 'theme'));
-    if(tDoc.exists()) applyTheme(tDoc.data().primary, tDoc.data().side, tDoc.data().bg);
+    if(tDoc.exists()) applyStyle(tDoc.data());
     if(!u) { document.getElementById('auth').style.display='flex'; document.getElementById('app').style.display='none'; return; }
     const d = await getDoc(doc(db, 'users', u.uid));
     if(!d.exists()) return;
@@ -139,25 +172,29 @@
     const m = document.getElementById('menu'); m.innerHTML = '';
     secs.forEach(s => {
       if(me.role === 'admin' || me.allowedSections.includes(s.id)) {
-        const b = document.createElement('div'); b.className='item'; b.innerText=s.title; b.onclick=()=>showSec(s); m.appendChild(b);
+        const b = document.createElement('div'); b.className='item';
+        b.innerHTML = (icons[s.id] || icons.def) + `<span>${s.title}</span>`;
+        b.onclick=()=>showSec(s); m.appendChild(b);
       }
     });
     if(me.role === 'admin') {
-      const a = document.createElement('div'); a.className='item'; a.style.color='#fbbf24'; a.innerText='⚙️ إدارة النظام'; a.onclick=showAdm; m.appendChild(a);
+      const a = document.createElement('div'); a.className='item'; a.style.color='#fbbf24';
+      a.innerHTML = icons.adm + '<span>إدارة النظام</span>';
+      a.onclick=showAdm; m.appendChild(a);
     }
     if(m.firstChild) m.firstChild.click();
   }
 
   function showSec(s) {
     const v = document.getElementById('view');
-    v.innerHTML = '<div class="card"><h3>'+s.title+'</h3><select id="t">'+s.options.map(o=>'<option>'+o+'</option>').join('')+'</select><input id="ti" placeholder="العنوان"><textarea id="de" placeholder="التفاصيل"></textarea><button id="sv">حفظ</button></div><div class="card" id="ls"></div>';
+    v.innerHTML = `<div class="card"><h3>${icons[s.id] || icons.def} ${s.title}</h3><select id="t">${s.options.map(o=>`<option>${o}</option>`).join('')}</select><input id="ti" placeholder="العنوان"><textarea id="de" placeholder="التفاصيل"></textarea><button id="sv">حفظ وإرسال</button></div><div class="card" id="ls"></div>`;
     document.getElementById('sv').onclick = async () => {
       await addDoc(collection(db, 'records'), { sec: s.id, type: document.getElementById('t').value, title: document.getElementById('ti').value, details: document.getElementById('de').value, by: me.fullName });
       showSec(s);
     };
     getDocs(collection(db, 'records')).then(r => {
       let h = '<table><tr><th>النوع</th><th>البيان</th><th>بواسطة</th></tr>';
-      r.forEach(x => { const d = x.data(); if(d.sec===s.id && (me.role==='admin' || d.by===me.fullName)) h += '<tr><td>'+d.type+'</td><td>'+d.title+'<br><small>'+d.details+'</small></td><td>'+d.by+'</td></tr>'; });
+      r.forEach(x => { const d = x.data(); if(d.sec===s.id && (me.role==='admin' || d.by===me.fullName)) h += `<tr><td>${d.type}</td><td><b>${d.title}</b><br><small>${d.details}</small></td><td>${d.by}</td></tr>`; });
       document.getElementById('ls').innerHTML = h + '</table>';
     });
   }
@@ -168,14 +205,31 @@
       let uh = '<table><tr><th>الاسم</th><th>الحالة</th><th>الصلاحيات</th><th>تفعيل</th></tr>';
       u.forEach(x => {
         const d = x.data(); if(d.role==='admin') return;
-        const ch = secs.map(s => '<label><input type="checkbox" style="width:auto" '+(d.allowedSections?.includes(s.id)?'checked':'')+' onchange="window.tg(\''+x.id+'\',\''+s.id+'\',this.checked)">'+s.title+'</label> ').join('');
-        uh += '<tr><td>'+d.fullName+'</td><td>'+d.status+'</td><td>'+ch+'</td><td>'+(d.status==='pending'?'<button class="btn-sm" onclick="window.ap(\''+x.id+'\')">تفعيل</button>':'')+'</td></tr>';
+        const ch = secs.map(s => `<label><input type="checkbox" style="width:auto" ${d.allowedSections?.includes(s.id)?'checked':''} onchange="window.tg('${x.id}','${s.id}',this.checked)">${s.title}</label> `).join('');
+        uh += `<tr><td>${d.fullName}</td><td>${d.status}</td><td>${ch}</td><td>${d.status==='pending'?`<button class="btn-sm" onclick="window.ap('${x.id}')">تفعيل</button>`:''}</td></tr>`;
       });
       let sh = '<table><tr><th>الترتيب</th><th>اسم القسم</th><th>الخيارات</th><th>تحكم</th></tr>';
       secs.forEach((s, idx) => {
-        sh += '<tr><td><button class="btn-sm sec" onclick="window.mvSec('+idx+',-1)">▲</button><button class="btn-sm sec" onclick="window.mvSec('+idx+',1)">▼</button></td><td><b>'+s.title+'</b></td><td>'+s.options.join('، ')+'</td><td><button class="btn-sm btn-del" onclick="window.delSec(\''+s.id+'\')">حذف</button></td></tr>';
+        sh += `<tr><td><button class="btn-sm sec" onclick="window.mvSec(${idx},-1)">▲</button><button class="btn-sm sec" onclick="window.mvSec(${idx},1)">▼</button></td><td><b>${s.title}</b></td><td>${s.options.join('، ')}</td><td><button class="btn-sm btn-del" onclick="window.delSec('${s.id}')">حذف</button></td></tr>`;
       });
-            v.innerHTML = `<div class="card"><h3>🎨 ثيم وألوان التطبيق</h3><button class="theme-btn" style="background:#2563eb" onclick="window.setTheme('#2563eb','#0f172a','#f1f5f9')">أزرق رسمي</button><button class="theme-btn" style="background:#059669" onclick="window.setTheme('#059669','#064e3b','#ecfdf5')">أخضر زمردي</button><button class="theme-btn" style="background:#7c3aed" onclick="window.setTheme('#7c3aed','#2e1065','#f5f3ff')">بنفسجي عصري</button><button class="theme-btn" style="background:#334155" onclick="window.setTheme('#334155','#090d16','#e2e8f0')">داكن كلاسيكي</button></div><div class="card"><h3>📂 ترتيب وحذف الأقسام</h3>${sh}</table><hr><h4>إضافة قسم جديد:</h4><input id="ns" placeholder="اسم القسم"><input id="no" placeholder="الخيارات مفصولة بفاصلة"><button id="as">إضافة القسم</button></div><div class="card"><h3>👥 إدارة الأعضاء والصلاحيات</h3>${uh}</table></div>`;
+      v.innerHTML = `<div class="card"><h3>${icons.adm} الثيم والخطوط والخلفية</h3>
+        <p><b>الألوان:</b></p>
+        <button class="theme-btn" style="background:#2563eb" onclick="window.saveCfg({primary:'#2563eb',side:'#0f172a',bg:'#f1f5f9'})">أزرق رسمي</button>
+        <button class="theme-btn" style="background:#059669" onclick="window.saveCfg({primary:'#059669',side:'#064e3b',bg:'#ecfdf5'})">أخضر زمردي</button>
+        <button class="theme-btn" style="background:#7c3aed" onclick="window.saveCfg({primary:'#7c3aed',side:'#2e1065',bg:'#f5f3ff'})">بنفسجي عصري</button>
+        <button class="theme-btn" style="background:#334155" onclick="window.saveCfg({primary:'#334155',side:'#090d16',bg:'#e2e8f0'})">داكن كلاسيكي</button>
+        <p><b>نوع الخط:</b></p>
+        <button class="btn-sm" style="font-family:'Tajawal'" onclick="window.saveCfg({font:\"'Tajawal', sans-serif\"})">خط تجوال (Tajawal)</button>
+        <button class="btn-sm" style="font-family:'Cairo'" onclick="window.saveCfg({font:\"'Cairo', sans-serif\"})">خط القاهرة (Cairo)</button>
+        <button class="btn-sm" style="font-family:'Almarai'" onclick="window.saveCfg({font:\"'Almarai', sans-serif\"})">خط المراعي (Almarai)</button>
+        <button class="btn-sm sec" onclick="window.saveCfg({font:\"'Tahoma', sans-serif\"})">الخط الرسمي</button>
+        <p><b>خلفية التطبيق (رابط صورة):</b></p>
+        <input id="bg-url" value="${cfg.bgImg||''}" placeholder="الصق رابط صورة الخلفية هنا (ينتهي بـ jpg أو png)">
+        <button class="btn-sm" onclick="window.saveCfg({bgImg:document.getElementById('bg-url').value.trim()})">تطبيق الخلفية</button>
+        <button class="btn-sm btn-del" onclick="document.getElementById('bg-url').value='';window.saveCfg({bgImg:''})">إزالة الخلفية</button>
+      </div>
+      <div class="card"><h3>${icons.def} ترتيب وحذف الأقسام</h3>${sh}</table><hr><h4>إضافة قسم جديد:</h4><input id="ns" placeholder="اسم القسم"><input id="no" placeholder="الخيارات مفصولة بفاصلة"><button id="as">إضافة القسم</button></div>
+      <div class="card"><h3>${icons.cli} إدارة الأعضاء والصلاحيات</h3>${uh}</table></div>`;
 
       document.getElementById('as').onclick = async () => {
         const title = document.getElementById('ns').value.trim(), opts = document.getElementById('no').value.trim();
@@ -187,7 +241,7 @@
     });
   }
 
-  window.setTheme = async (p, s, b) => { applyTheme(p, s, b); await setDoc(doc(db, 'settings', 'theme'), { primary: p, side: s, bg: b }); };
+  window.saveCfg = async (part) => { applyStyle(part); await setDoc(doc(db, 'settings', 'theme'), cfg); };
   window.delSec = async (id) => { if(!confirm('هل أنت متأكد من حذف هذا القسم؟')) return; await deleteDoc(doc(db, 'sections', id)); await renderMenu(); showAdm(); };
   window.mvSec = async (idx, dir) => {
     const target = idx + dir; if(target < 0 || target >= secs.length) return;
